@@ -1,0 +1,7 @@
+interface:
+  display_name: "Canva Assignment PDF Merge"
+  short_description: "Merge completed Canva assignments into one PDF."
+  default_prompt: "Use $canva-assignment-pdf-merge to collect completed Canva submissions for a named assignment, export them to PDF, and merge them in student-number order."
+
+policy:
+  allow_implicit_invocation: true

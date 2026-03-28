@@ -1,0 +1,98 @@
+{
+  "assignmentName": "여행지",
+  "outputFileName": "여행지_완료본_병합.pdf",
+  "strictMode": true,
+  "summary": {
+    "totalSearchHits": 6,
+    "totalParsedValid": 4,
+    "totalExported": 3,
+    "duplicatesFound": 1,
+    "invalidTitles": 1,
+    "skippedDesigns": 3,
+    "selectedStudents": [
+      {
+        "studentNumber": 2,
+        "studentName": "박지은",
+        "designId": "D-B1",
+        "title": "완료 - 여행지 - 2 - 박지은"
+      },
+      {
+        "studentNumber": 15,
+        "studentName": "김민수",
+        "designId": "D-A2",
+        "title": "완료 - 여행지 - 15 - 김민수"
+      },
+      {
+        "studentNumber": 21,
+        "studentName": "최윤서",
+        "designId": "D-C1",
+        "title": "완료 - 여행지 - 21 - 최윤서"
+      }
+    ]
+  },
+  "searchQueries": [
+    "완료 - 여행지 -",
+    "여행지"
+  ],
+  "invalidTitleList": [
+    {
+      "design_id": "D-X1",
+      "title": "완료-여행지-8-오류",
+      "reason": "title_format_invalid",
+      "detail": "strict separator policy requires spaces around '-'",
+      "updated_at": "2026-03-28T09:02:00+00:00"
+    }
+  ],
+  "assignmentMismatchList": [
+    {
+      "design_id": "D-Y1",
+      "title": "완료 - 과학 - 5 - 정우",
+      "reason": "assignment_name_mismatch",
+      "detail": "expected '여행지', got '과학'",
+      "updated_at": "2026-03-28T09:03:00+00:00"
+    }
+  ],
+  "duplicatesResolved": [
+    {
+      "student_number": 15,
+      "kept_design_id": "D-A2",
+      "kept_title": "완료 - 여행지 - 15 - 김민수",
+      "replaced_design_id": "D-A1",
+      "replaced_title": "완료 - 여행지 - 15 - 김민수 초안",
+      "resolution": "latest_updated_at",
+      "detail": "kept latest updatedAt; names: '김민수' vs '김민수 초안'"
+    }
+  ],
+  "exportFailures": [],
+  "skippedDesigns": [
+    {
+      "design_id": "D-A1",
+      "title": "완료 - 여행지 - 15 - 김민수 초안",
+      "reason": "duplicate_replaced_by_latest",
+      "detail": "kept latest updatedAt; names: '김민수' vs '김민수 초안'",
+      "updated_at": null
+    }
+  ],
+  "finalSelectedOrder": [
+    {
+      "studentNumber": 2,
+      "studentName": "박지은",
+      "designId": "D-B1",
+      "title": "완료 - 여행지 - 2 - 박지은"
+    },
+    {
+      "studentNumber": 15,
+      "studentName": "김민수",
+      "designId": "D-A2",
+      "title": "완료 - 여행지 - 15 - 김민수"
+    },
+    {
+      "studentNumber": 21,
+      "studentName": "최윤서",
+      "designId": "D-C1",
+      "title": "완료 - 여행지 - 21 - 최윤서"
+    }
+  ],
+  "mergedPdfPath": "/tmp/out/여행지_완료본_병합.pdf",
+  "reportPath": "/tmp/out/여행지_완료본_병합_report.json"
+}
