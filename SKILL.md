@@ -1,89 +1,113 @@
-<!-- bootstrap: curl -fsSL https://raw.githubusercontent.com/coseung2/canva-assignment-pdf-merge/main/scripts/merge_completed_assignments.py -o merge_completed_assignments.py -->
 ---
 name: canva-assignment-pdf-merge
-description: Collect completed Canva student submissions by strict title pattern, validate and deduplicate them by student number, export each selected design as PDF through a swappable adapter, then merge the PDFs and emit a validation report. Use when a user asks to merge completed Canva assignments such as "여행지 과제 완료본 병합해줘" without relying on Canva assignment-tab status.
+description: |
+  사용자가 "역사 과제 완료본 병합해줘" 같이 말하면,
+  Canva에서 완료본 디자인을 검색·필터·export하고 하나의 PDF로 병합해 반환한다.
+  Python CLI나 로컬 파일 없이 이 채팅 환경의 MCP 툴만으로 동작한다.
 ---
 
 # Canva Assignment PDF Merge
 
-## Source
-GitHub: https://github.com/coseung2/canva-assignment-pdf-merge
-Install: clone the repo or fetch individual scripts via the raw URLs below.
+## 트리거
 
-Use this skill when the user wants a single PDF compiled from completed Canva assignments and the source of truth is the design title:
+다음 표현이 포함되면 이 스킬을 사용한다.
+- "과제 병합", "완료본 합쳐줘", "PDF로 모아줘"
+- "{과제명} 병합해줘"
 
-`완료 - {assignmentName} - {studentNumber} - {studentName}`
+## 제목 규칙 (source of truth)
 
-Do not rely on Canva assignment tabs or submission status. Only the title convention counts.
-
-## Inputs
-
-- Required: `assignmentName`
-- Optional: `outputFileName`
-- Optional: `strictMode` (default `true`)
-
-## Workflow
-
-1. Search Canva designs with the primary query `완료 - {assignmentName} -`.
-2. If needed, run a broader fallback search, then locally validate every returned title with the parser.
-3. Keep only titles that parse cleanly and whose parsed assignment name matches exactly after trimming.
-4. Deduplicate by `studentNumber`, keeping the most recently updated design and reporting the conflict.
-5. Export the selected designs as PDFs through the configured Canva adapter.
-6. Merge PDFs in ascending `studentNumber` order.
-7. Return the merged PDF path plus the JSON validation report.
-
-## Deterministic Rules
-
-- `strictMode=true` still uses `-` as the required separator, but does not require spaces around it.
-- `strictMode=false` relaxes separator spacing, but still requires:
-  - title starts with `완료`
-  - numeric `studentNumber`
-  - non-empty `studentName`
-  - exact `assignmentName` match after trim
-- Never trust raw search hits without local parsing.
-- Export failures fail the run in strict mode.
-- In non-strict mode, continue if at least one PDF exports successfully.
-
-## Files
-
-- Core package: `https://raw.githubusercontent.com/coseung2/canva-assignment-pdf-merge/main/scripts/canva_assignment_merge/`
-- CLI entrypoint: `https://raw.githubusercontent.com/coseung2/canva-assignment-pdf-merge/main/scripts/merge_completed_assignments.py`
-- MCP search bridge: `https://raw.githubusercontent.com/coseung2/canva-assignment-pdf-merge/main/scripts/canva_assignment_merge/mcp_to_manifest.py`
-- Tests: `https://raw.githubusercontent.com/coseung2/canva-assignment-pdf-merge/main/tests/test_assignment_merge.py`
-- Tests: `https://raw.githubusercontent.com/coseung2/canva-assignment-pdf-merge/main/tests/test_mcp_to_manifest.py`
-- Example report and notes: `references/`
-
-## Usage
-
-Install dependency first:
-
-```bash
-python3 -m pip install pypdf
+```text
+완료{sep}{assignmentName}{sep}{studentNumber}{sep}{studentName}
 ```
 
-End-to-end quick start: run Canva MCP design search with the query `완료 - 여행지 -`, save the raw JSON response, convert it to manifest format with `python3 /path/to/mcp_to_manifest.py /path/to/raw_response.json > /path/to/search_results.json` after fetching `https://raw.githubusercontent.com/coseung2/canva-assignment-pdf-merge/main/scripts/canva_assignment_merge/mcp_to_manifest.py`, prepare an export map JSON keyed by `designId`, then run `python3 /path/to/merge_completed_assignments.py --assignment-name "여행지" --search-results-file /path/to/search_results.json --export-map-file /path/to/export_map.json --output-dir /path/to/output` after fetching `https://raw.githubusercontent.com/coseung2/canva-assignment-pdf-merge/main/scripts/merge_completed_assignments.py` to produce the merged PDF and validation report.
+- `sep`은 `-` 또는 ` - ` (공백 유무 무관)
+- `studentNumber`는 숫자만
+- `assignmentName`은 사용자가 말한 과제명과 trim 후 exact match
 
-Manifest mode is the lowest-friction path for current Canva MCP limitations:
+유효 예시:
+- `완료 - 역사 - 15 - 김민수`  ✅
+- `완료-역사-15-김민수`         ✅
 
-1. Gather Canva search results into JSON with records containing:
-   - `designId`
-   - `title`
-   - `updatedAt`
-   - optional edit/view/export metadata
-2. Export PDFs through your connected backend or connector and write an export map JSON keyed by `designId`.
-3. Run:
+무효 예시:
+- `완료 - 역사 - abc - 김민수` ❌ (studentNumber 비숫자)
+- `완료-여행지-15-김민수`       ❌ (assignmentName 불일치)
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/coseung2/canva-assignment-pdf-merge/main/scripts/merge_completed_assignments.py -o merge_completed_assignments.py
-python3 merge_completed_assignments.py \
-  --assignment-name "여행지" \
-  --search-results-file /path/to/search_results.json \
-  --export-map-file /path/to/export_map.json \
-  --output-dir /path/to/output
+## 워크플로우
+
+### 1. 검색
+
+```text
+search-designs 쿼리: "완료 - {assignmentName}"
 ```
 
-## Adapter Notes
+결과가 0건이면 `"완료-{assignmentName}"` 으로 재검색.
 
-- `ManifestCanvaClient` is fully implemented for deterministic local runs and tests.
-- `BackendCanvaClient` is the swappable integration point for a real Canva export/search backend.
-- If a future Canva connector exposes export directly, wire that logic into `https://raw.githubusercontent.com/coseung2/canva-assignment-pdf-merge/main/scripts/canva_assignment_merge/canva_client.py` instead of changing the collector, merger, or report code.
+### 2. 파싱 & 필터
+
+반환된 모든 디자인 제목을 위 제목 규칙으로 로컬 파싱.
+규칙에 맞지 않는 항목은 조용히 제외 (리포트에 기록).
+
+### 3. 중복 제거
+
+같은 `studentNumber`가 여러 개면 `updatedAt` 최신본만 유지.
+충돌 목록은 최종 리포트에 포함.
+
+### 4. PDF export
+
+유효 디자인 각각에 대해:
+
+```text
+export-design(design_id, format={type: "pdf"})
+```
+
+반환된 URL로 PDF bytes 다운로드.
+export 실패 시 해당 항목만 건너뛰고 리포트에 기록 (계속 진행).
+
+### 5. 병합
+
+`studentNumber` 오름차순으로 PDF를 병합.
+
+```python
+import pypdf, requests, tempfile, os
+
+def merge_pdfs(url_list: list[tuple[int, str]]) -> bytes:
+    writer = pypdf.PdfWriter()
+    for student_num, url in sorted(url_list):
+        r = requests.get(url, timeout=30)
+        r.raise_for_status()
+        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as f:
+            f.write(r.content)
+            tmp = f.name
+        writer.append(tmp)
+        os.unlink(tmp)
+    import io
+    buf = io.BytesIO()
+    writer.write(buf)
+    return buf.getvalue()
+```
+
+### 6. 반환
+
+병합 PDF를 파일로 저장 후 사용자에게 전달.
+파일명: `{assignmentName}_완료본_병합.pdf`
+
+최종 리포트 (텍스트로 출력):
+
+```text
+병합 완료: {N}명
+제외 (파싱 실패): [목록]
+제외 (중복): [목록]
+제외 (export 실패): [목록]
+```
+
+## 의존성
+
+```bash
+pip install pypdf requests
+```
+
+## 제약
+
+- Canva MCP export URL은 수 시간 후 만료됨 → 병합은 export 직후 즉시 수행
+- export-design은 이 채팅(claude.ai) 환경의 Canva MCP 연결이 필요
+- Python CLI(`scripts/`) 코드는 레거시 참고용이며 이 스킬에서는 사용하지 않음
