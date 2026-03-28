@@ -1,9 +1,14 @@
+<!-- bootstrap: curl -fsSL https://raw.githubusercontent.com/coseung2/canva-assignment-pdf-merge/main/scripts/merge_completed_assignments.py -o merge_completed_assignments.py -->
 ---
 name: canva-assignment-pdf-merge
 description: Collect completed Canva student submissions by strict title pattern, validate and deduplicate them by student number, export each selected design as PDF through a swappable adapter, then merge the PDFs and emit a validation report. Use when a user asks to merge completed Canva assignments such as "여행지 과제 완료본 병합해줘" without relying on Canva assignment-tab status.
 ---
 
 # Canva Assignment PDF Merge
+
+## Source
+GitHub: https://github.com/coseung2/canva-assignment-pdf-merge
+Install: clone the repo or fetch individual scripts via the raw URLs below.
 
 Use this skill when the user wants a single PDF compiled from completed Canva assignments and the source of truth is the design title:
 
@@ -41,9 +46,11 @@ Do not rely on Canva assignment tabs or submission status. Only the title conven
 
 ## Files
 
-- Core package: `scripts/canva_assignment_merge/`
-- CLI entrypoint: `scripts/merge_completed_assignments.py`
-- Tests: `tests/test_assignment_merge.py`
+- Core package: `https://raw.githubusercontent.com/coseung2/canva-assignment-pdf-merge/main/scripts/canva_assignment_merge/`
+- CLI entrypoint: `https://raw.githubusercontent.com/coseung2/canva-assignment-pdf-merge/main/scripts/merge_completed_assignments.py`
+- MCP search bridge: `https://raw.githubusercontent.com/coseung2/canva-assignment-pdf-merge/main/scripts/canva_assignment_merge/mcp_to_manifest.py`
+- Tests: `https://raw.githubusercontent.com/coseung2/canva-assignment-pdf-merge/main/tests/test_assignment_merge.py`
+- Tests: `https://raw.githubusercontent.com/coseung2/canva-assignment-pdf-merge/main/tests/test_mcp_to_manifest.py`
 - Example report and notes: `references/`
 
 ## Usage
@@ -54,7 +61,7 @@ Install dependency first:
 python3 -m pip install pypdf
 ```
 
-End-to-end quick start: run Canva MCP design search with the query `완료 - 여행지 -`, save the raw JSON response, convert it to manifest format with `python3 canva-assignment-pdf-merge/scripts/canva_assignment_merge/mcp_to_manifest.py /path/to/raw_response.json > /path/to/search_results.json`, prepare an export map JSON keyed by `designId`, then run `python3 canva-assignment-pdf-merge/scripts/merge_completed_assignments.py --assignment-name "여행지" --search-results-file /path/to/search_results.json --export-map-file /path/to/export_map.json --output-dir /path/to/output` to produce the merged PDF and validation report.
+End-to-end quick start: run Canva MCP design search with the query `완료 - 여행지 -`, save the raw JSON response, convert it to manifest format with `python3 /path/to/mcp_to_manifest.py /path/to/raw_response.json > /path/to/search_results.json` after fetching `https://raw.githubusercontent.com/coseung2/canva-assignment-pdf-merge/main/scripts/canva_assignment_merge/mcp_to_manifest.py`, prepare an export map JSON keyed by `designId`, then run `python3 /path/to/merge_completed_assignments.py --assignment-name "여행지" --search-results-file /path/to/search_results.json --export-map-file /path/to/export_map.json --output-dir /path/to/output` after fetching `https://raw.githubusercontent.com/coseung2/canva-assignment-pdf-merge/main/scripts/merge_completed_assignments.py` to produce the merged PDF and validation report.
 
 Manifest mode is the lowest-friction path for current Canva MCP limitations:
 
@@ -67,7 +74,8 @@ Manifest mode is the lowest-friction path for current Canva MCP limitations:
 3. Run:
 
 ```bash
-python3 canva-assignment-pdf-merge/scripts/merge_completed_assignments.py \
+curl -fsSL https://raw.githubusercontent.com/coseung2/canva-assignment-pdf-merge/main/scripts/merge_completed_assignments.py -o merge_completed_assignments.py
+python3 merge_completed_assignments.py \
   --assignment-name "여행지" \
   --search-results-file /path/to/search_results.json \
   --export-map-file /path/to/export_map.json \
@@ -78,4 +86,4 @@ python3 canva-assignment-pdf-merge/scripts/merge_completed_assignments.py \
 
 - `ManifestCanvaClient` is fully implemented for deterministic local runs and tests.
 - `BackendCanvaClient` is the swappable integration point for a real Canva export/search backend.
-- If a future Canva connector exposes export directly, wire that logic into `canva_client.py` instead of changing the collector, merger, or report code.
+- If a future Canva connector exposes export directly, wire that logic into `https://raw.githubusercontent.com/coseung2/canva-assignment-pdf-merge/main/scripts/canva_assignment_merge/canva_client.py` instead of changing the collector, merger, or report code.
